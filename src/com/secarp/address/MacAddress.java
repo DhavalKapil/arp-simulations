@@ -3,7 +3,7 @@ package com.secarp.address;
 /**
  * An abstraction for the MAC address
  */
-class MacAddress extends Address {
+public class MacAddress extends Address {
     // String representation of the address
     private String address;
 

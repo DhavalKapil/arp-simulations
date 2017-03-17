@@ -3,7 +3,7 @@ package com.secarp.address;
 /**
  * An abstraction for the IPv4 address
  */
-class Ipv4Address extends Address {
+public class Ipv4Address extends Address {
     // String representation of the address
     private String address;
 

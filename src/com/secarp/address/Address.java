@@ -4,7 +4,7 @@ package com.secarp.address;
  * An abstraction for different kinds of addresses used by the underlying
  * network.
  */
-abstract class Address {
+public abstract class Address {
     /**
      * Checks for broadcast address
      *
