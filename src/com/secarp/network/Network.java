@@ -45,6 +45,7 @@ public abstract class Network {
             return false;
         }
         node.setId(this.id);
+        node.setNetwork(this);
         this.nodes[this.id] = node;
         this.id++;
         return true;

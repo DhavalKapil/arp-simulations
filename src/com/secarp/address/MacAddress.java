@@ -7,6 +7,9 @@ public class MacAddress extends Address {
     // String representation of the address
     private String address;
 
+    // The broadcast mac address as String
+    private static final String BROADCAST_STRING = "FF:FF:FF:FF:FF:FF";
+
     /**
      * Constructor
      */
@@ -15,11 +18,20 @@ public class MacAddress extends Address {
     }
 
     /**
+     * Returns an instance of the Broadcast address
+     *
+     * @return A broadcast MAC address
+     */
+    public static MacAddress getBroadcast() {
+        return new MacAddress(BROADCAST_STRING);
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
     public boolean isBroadcast() {
-        if (this.address.equals("FF:FF:FF:FF:FF:FF")) {
+        if (this.address.equals(BROADCAST_STRING)) {
             return true;
         }
         return false;
