@@ -1,7 +1,7 @@
 package com.secarp.protocol;
 
 /**
- * An asbtraction for protocols that wait upon incoming packets
+ * An asbtraction for classes that wait upon incoming packets
  */
 public interface Receivable {
     /**
