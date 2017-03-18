@@ -139,8 +139,8 @@ public class Node {
      * @param packet The packet to send
      * @param address The MAC address of the target node/nodes
      */
-    private void sendPacket(Packet packet,
-                            MacAddress address) {
+    public void sendPacket(Packet packet,
+                           MacAddress address) {
         new Thread(new Runnable() {
                 @Override
                 public void run() {

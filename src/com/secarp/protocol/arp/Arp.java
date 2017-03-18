@@ -15,6 +15,10 @@ public class Arp extends Protocol implements Receivable {
     // The ARP cache
     private ArpCache arpCache;
 
+    // The node associated with the protocol
+    // Assuming one to one mapping with a particular node
+    private Node node;
+
     /**
      * Constructor function
      */
@@ -38,14 +42,25 @@ public class Arp extends Protocol implements Receivable {
 
         ArpHeader header = (ArpHeader)packet.getHeader();
         // Checking if packet is an ARP reply packet
-        if (header.getArpType() != ArpType.REPLY) {
-            return;
+        if (header.getArpType() == ArpType.REPLY) {
+            // Add entry in cache
+            this.arpCache.put(header.getSenderIp(),
+                              header.getSenderMac()
+                              );
+        } else if (header.getArpType() == ArpType.REQUEST) {
+            // Check if target ip matches node's ip or not
+            if (this.node.getIpv4Address().equals(header.getReceiverIp())) {
+                // Sending a reply
+                Packet reply = Arp.createReplyPacket(this.node.getMacAddress(),
+                                                     this.node.getIpv4Address(),
+                                                     header.getSenderMac(),
+                                                     header.getSenderIp()
+                                                     );
+                this.node.sendPacket(reply,
+                                     header.getSenderMac()
+                                     );
+            }
         }
-
-        // Add entry in cache
-        this.arpCache.put(header.getSenderIp(),
-                          header.getSenderMac()
-                          );
     }
 
     /**
@@ -53,6 +68,7 @@ public class Arp extends Protocol implements Receivable {
      */
     @Override
     public void install(Node node) {
+        this.node = node;
         node.setArp(this);
         node.setArpCache(this.arpCache);
         node.registerReceivable(this);
