@@ -6,6 +6,7 @@ import com.secarp.address.Ipv4Address;
 import com.secarp.address.MacAddress;
 import com.secarp.common.Timer;
 import com.secarp.network.Network;
+import com.secarp.protocol.arp.Arp;
 import com.secarp.protocol.arp.ArpCache;
 import com.secarp.protocol.Packet;
 import com.secarp.protocol.Receivable;
@@ -28,6 +29,9 @@ public class Node {
 
     // The registered receivable instances that handle incoming packets
     private ArrayList<Receivable> receivables;
+
+    // The arp protocol stack
+    private Arp arp;
 
     // The arp cache
     private ArpCache arpCache;
@@ -92,6 +96,14 @@ public class Node {
         this.arpCache = arpCache;
     }
 
+    public Arp getArp() {
+        return arp;
+    }
+
+    public void setArp(Arp arp) {
+        this.arp = arp;
+    }
+
     /**
      * Registers a new receivable
      *
@@ -140,15 +152,22 @@ public class Node {
     }
 
     /**
-     * Sends a packet to the underlying network
+     * Sends a packet to the underlying network by IP address
      *
      * @param packet The packet to be sent
-     * @param Ipv4Address The target Ipv4Address
+     * @param targetIpv4Address The target Ipv4Address
      */
-    public void sendPacket(Packet packet, Ipv4Address ipv4Address) {
+    public void sendPacket(Packet packet, Ipv4Address targetIpv4Address) {
         MacAddress targetAddress;
-        while((targetAddress = this.arpCache.lookup(ipv4Address)) != null) {
-            Packet arpRequestPacket = null; // TODO generate arp request packet
+
+        while((targetAddress = this.arpCache.lookup(targetIpv4Address))
+              != null) {
+            Packet arpRequestPacket = this.arp.
+                createRequestPacket(this.macAddress, // Source MAC
+                                    this.ipv4Address, // Source IP
+                                    targetIpv4Address
+                                    );
+
             this.sendPacket(arpRequestPacket,
                             MacAddress.getBroadcast()
                             );
