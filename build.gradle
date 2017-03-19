@@ -11,3 +11,10 @@ sourceSets {
     }
   }
 }
+
+task(runSimulation, dependsOn: 'classes', type: JavaExec) {
+  main = 'com.secarp.Simulator'
+  classpath = sourceSets.main.runtimeClasspath
+}
+
+defaultTasks 'runSimulation'

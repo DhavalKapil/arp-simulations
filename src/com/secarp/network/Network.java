@@ -1,5 +1,7 @@
 package com.secarp.network;
 
+import java.util.ArrayList;
+
 import com.secarp.address.MacAddress;
 import com.secarp.common.CircularQueue;
 import com.secarp.device.Node;
@@ -12,7 +14,7 @@ import com.secarp.protocol.Packet;
 public abstract class Network {
 
     // List of nodes in the network;
-    protected Node[] nodes;
+    protected ArrayList<Node> nodes;
 
     // Receive packet queue for each node
     private CircularQueue<Packet>[] recQ;
@@ -23,12 +25,11 @@ public abstract class Network {
     /**
      * Constructor
      *
-     * @param size The expected max size of the network
      * @param capacity The capacity of the receiving queue
      */
-    public Network(int size, int capacity) {
-        this.nodes = new Node[size];
-        this.recQ = (CircularQueue<Packet>[])new Object[capacity];
+    public Network(int capacity) {
+        this.nodes = new ArrayList<Node>();
+        //this.recQ = (CircularQueue<Packet>[])new Object[capacity];
         this.id = 0;
     }
 
@@ -36,19 +37,12 @@ public abstract class Network {
      * Adds a new node to the network
      *
      * @param Node The node to be added
-     *
-     * @return Whether the operation was executed or not
      */
-    public boolean addNode(Node node) {
-        if (this.id == this.nodes.length) {
-            // Array is already full
-            return false;
-        }
+    public void addNode(Node node) {
         node.setId(this.id);
         node.setNetwork(this);
-        this.nodes[this.id] = node;
+        this.nodes.add(this.id, node);
         this.id++;
-        return true;
     }
 
     /**

@@ -12,11 +12,10 @@ public class Ethernet extends Network {
     /**
      * Constructor
      *
-     * @param size The expected max size of the network
      * @param capacity The capacity of the receiving queue
      */
-    public Ethernet(int size, int capacity) {
-        super(size, capacity);
+    public Ethernet(int capacity) {
+        super(capacity);
     }
 
     /**

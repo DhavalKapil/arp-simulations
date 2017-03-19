@@ -180,7 +180,7 @@ public class Node {
         MacAddress targetAddress;
 
         while((targetAddress = this.arpCache.lookup(targetIpv4Address))
-              != null) {
+              == null) {
             Packet arpRequestPacket = this.arp.
                 createRequestPacket(this.macAddress, // Source MAC
                                     this.ipv4Address, // Source IP

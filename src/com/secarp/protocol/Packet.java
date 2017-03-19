@@ -25,7 +25,7 @@ public class Packet {
         this(null, payload);
     }
 
-    public Packet(Header header, byte[] Payload) {
+    public Packet(Header header, byte[] payload) {
         this.header = header;
         this.payload = payload;
     }
