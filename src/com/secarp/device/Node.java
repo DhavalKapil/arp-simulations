@@ -4,6 +4,7 @@ import java.util.*;
 
 import com.secarp.address.Ipv4Address;
 import com.secarp.address.MacAddress;
+import com.secarp.common.Logger;
 import com.secarp.common.Timer;
 import com.secarp.network.Network;
 import com.secarp.protocol.arp.Arp;
@@ -36,6 +37,9 @@ public class Node {
     // The arp cache
     private ArpCache arpCache;
 
+    // Logger
+    private Logger logger;
+
     /**
      * Constructor function
      */
@@ -43,6 +47,7 @@ public class Node {
         this.ipv4Address = ipv4Address;
         this.macAddress = macAddress;
         this.receivables = new ArrayList<Receivable>();
+        this.logger = new Logger(this);
     }
 
     /**
@@ -97,11 +102,19 @@ public class Node {
     }
 
     public Arp getArp() {
-        return arp;
+        return this.arp;
     }
 
     public void setArp(Arp arp) {
         this.arp = arp;
+    }
+
+    public Logger getLogger() {
+        return this.logger;
+    }
+
+    public void setLogger(Logger logger) {
+        this.logger = logger;
     }
 
     /**
@@ -120,6 +133,9 @@ public class Node {
      * @param Packet The received packet
      */
     public void handlePacket(Packet packet) {
+        // Logging
+        this.logger.logPacket(packet, false);
+
         for (Receivable receivable : this.receivables) {
             // Spawning a new thread
             // The good old Java way :)
@@ -141,6 +157,9 @@ public class Node {
      */
     public void sendPacket(Packet packet,
                            MacAddress address) {
+        // Logging
+        this.logger.logPacket(packet, true);
+
         new Thread(new Runnable() {
                 @Override
                 public void run() {

@@ -47,6 +47,8 @@ public class Arp extends Protocol implements Receivable {
             this.arpCache.put(header.getSenderIp(),
                               header.getSenderMac()
                               );
+            // Logging
+            this.node.getLogger().logArpCache();
         } else if (header.getArpType() == ArpType.REQUEST) {
             // Check if target ip matches node's ip or not
             if (this.node.getIpv4Address().equals(header.getReceiverIp())) {

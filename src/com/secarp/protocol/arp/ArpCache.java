@@ -1,6 +1,7 @@
 package com.secarp.protocol.arp;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import com.secarp.address.Ipv4Address;
 import com.secarp.address.MacAddress;
@@ -61,5 +62,26 @@ public class ArpCache {
             return null;
         }
         return this.ipMacMap.get(ipv4Address);
+    }
+
+    /**
+     * Returns a map of all valid IP and Mac pairs
+     *
+     * @return A map of valid IP and Mac pairs
+     */
+    public Map<Ipv4Address, MacAddress> getMap() {
+        Map<Ipv4Address, MacAddress> map = new HashMap<Ipv4Address,
+            MacAddress>();
+
+        for (Ipv4Address ipv4Address : this.ipMacMap.keySet()) {
+            if ((this.ipTimeoutMap.get(ipv4Address) + TIMEOUT) >=
+                Timer.getCurrentTime()
+                ) {
+                // Valid entry
+                map.put(ipv4Address, this.ipMacMap.get(ipv4Address));
+            }
+        }
+
+        return map;
     }
 }
