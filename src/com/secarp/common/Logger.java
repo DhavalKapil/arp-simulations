@@ -34,7 +34,7 @@ public class Logger {
      * Logs the ARP cache
      */
     public synchronized void logArpCache() {
-        ArpCache cache = ((Arp)(this.node.getAddressResolutionProtocol())).getArpCache();
+        ArpCache cache = ((Arp)(this.node.getArp())).getArpCache();
         Map<Ipv4Address, MacAddress> map = cache.getMap();
         System.out.println("Arp Cache for node: " + this.node.getId());
         for(Ipv4Address ip : map.keySet()) {

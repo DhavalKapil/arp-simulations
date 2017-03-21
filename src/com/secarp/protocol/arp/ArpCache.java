@@ -56,7 +56,7 @@ public class ArpCache {
         if (!this.ipTimeoutMap.containsKey(ipv4Address)) {
             return null;
         }
-        if ((this.ipTimeoutMap.get(ipv4Address) + timeout) <
+        if ((this.ipTimeoutMap.get(ipv4Address) + this.timeout) <
             Timer.getCurrentTime()
             ) {
             // Entry was present but has expired
@@ -75,7 +75,7 @@ public class ArpCache {
             MacAddress>();
 
         for (Ipv4Address ipv4Address : this.ipMacMap.keySet()) {
-            if ((this.ipTimeoutMap.get(ipv4Address) + timeout) >=
+            if ((this.ipTimeoutMap.get(ipv4Address) + this.timeout) >=
                 Timer.getCurrentTime()
                 ) {
                 // Valid entry

@@ -8,9 +8,11 @@ import com.secarp.address.MacAddress;
  */
 public abstract class AddressResolutionProtocol extends Protocol {
     /**
+     * Returns MAC address for a particular IPv4 address by using the
+     * underlying ARP protocol
      *
-     * @param targetIpv4Address Ip address of the target node
+     * @param ipv4Address Ip address of the target node
      * @return Mac Address of the target node
      */
-    public abstract MacAddress getTargetMacAddress(Ipv4Address targetIpv4Address);
+    public abstract MacAddress getMacAddress(Ipv4Address ipv4Address);
 }

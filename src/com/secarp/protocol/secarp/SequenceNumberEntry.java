@@ -1,21 +1,21 @@
 package com.secarp.protocol.secarp;
 
+import java.util.HashMap;
+
 import com.secarp.address.Ipv4Address;
 import com.secarp.address.MacAddress;
-
-import java.util.HashMap;
 
 /**
  * Represents information corresponding to a sequence number
  */
 public class SequenceNumberEntry {
-    //Ip address of the target node
+    // Ip address of the target node
     private Ipv4Address ipv4Address;
 
-    //Time after which all replies will be treated as invalid
+    // Time after which all replies will be treated as invalid
     private int expirationTime;
 
-    //Map from Mac address to its count
+    // Map from Mac address to its count
     private HashMap<MacAddress, Integer> macCountMap;
 
     /**
@@ -29,18 +29,42 @@ public class SequenceNumberEntry {
         this.expirationTime = expirationTime;
         this.macCountMap = macCountMap;
     }
+
     /**
      * Getter and setter functions
      */
-    public Ipv4Address getIpv4Address() { return this.ipv4Address; }
+    public Ipv4Address getIpv4Address() {
+        return this.ipv4Address;
+    }
 
-    public void setIpv4Address(Ipv4Address ipv4Address) { this.ipv4Address = ipv4Address; }
+    public void setIpv4Address(Ipv4Address ipv4Address) {
+        this.ipv4Address = ipv4Address;
+    }
 
-    public int getExpirationTime() { return this.expirationTime; }
+    public int getExpirationTime() {
+        return this.expirationTime;
+    }
 
-    public void setExpirationTime(int expirationTime) { this.expirationTime = expirationTime; }
+    public void setExpirationTime(int expirationTime) {
+        this.expirationTime = expirationTime;
+    }
 
-    public HashMap<MacAddress, Integer> getMacCountMap() { return this.macCountMap; }
+    public HashMap<MacAddress, Integer> getMacCountMap() {
+        return this.macCountMap;
+    }
 
-    public void setMacCountMap(HashMap<MacAddress, Integer> macCountMap) { this.macCountMap = macCountMap; }
+    public void setMacCountMap(HashMap<MacAddress, Integer> macCountMap) {
+        this.macCountMap = macCountMap;
+    }
+
+    /**
+     * Adds/Updates a new Mac/Count entry
+     *
+     * @param macAddress
+     */
+    public void updateMacCount(MacAddress macAddress) {
+        this.macCountMap.putIfAbsent(macAddress, 0);
+        // Increments existing entry
+        this.macCountMap.put(macAddress, this.macCountMap.get(macAddress) + 1);
+    }
 }

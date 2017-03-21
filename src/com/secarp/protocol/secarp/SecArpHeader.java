@@ -8,7 +8,7 @@ import com.secarp.protocol.arp.ArpType;
 /**
  * The SecARP Header
  */
-public class SecArpHeader extends Header{
+public class SecArpHeader extends Header {
     // Sender Hardware Address
     private MacAddress senderMac;
 
@@ -73,9 +73,13 @@ public class SecArpHeader extends Header{
         return this.arpType;
     }
 
-    public int getSequenceNumber() { return this.sequenceNumber;}
+    public int getSequenceNumber() {
+        return this.sequenceNumber;
+    }
 
-    public boolean isArpFloodFlag() { return this.arpFloodFlag;}
+    public boolean isArpFloodFlag() {
+        return this.arpFloodFlag;
+    }
 
     /**
      * @{inheritDoc}

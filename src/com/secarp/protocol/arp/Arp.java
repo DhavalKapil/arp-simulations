@@ -4,7 +4,10 @@ import com.secarp.address.Ipv4Address;
 import com.secarp.address.MacAddress;
 import com.secarp.common.Timer;
 import com.secarp.device.Node;
-import com.secarp.protocol.*;
+import com.secarp.protocol.AddressResolutionProtocol;
+import com.secarp.protocol.Header;
+import com.secarp.protocol.Receivable;
+import com.secarp.protocol.Packet;
 
 /**
  * Represents the ARP protocol stack
@@ -28,7 +31,7 @@ public class Arp extends AddressResolutionProtocol implements Receivable {
     }
 
     /**
-     * getter for arpcache
+     * Getter for arpcache
      */
     public ArpCache getArpCache() {
         return this.arpCache;
@@ -38,25 +41,23 @@ public class Arp extends AddressResolutionProtocol implements Receivable {
      * @{inheritDocs}
      */
     @Override
-    public MacAddress getTargetMacAddress(Ipv4Address targetIpv4Address) {
+    public MacAddress getMacAddress(Ipv4Address ipv4Address) {
+        MacAddress address;
 
-        MacAddress targetAddress;
+        while((address = this.arpCache.lookup(ipv4Address)) == null) {
+            Packet packet = createRequestPacket(this.node.getMacAddress(),
+                                                this.node.getIpv4Address(),
+                                                ipv4Address
+                                                );
 
-        while((targetAddress = this.arpCache.lookup(targetIpv4Address))
-                == null) {
-            Packet arpRequestPacket = createRequestPacket(this.node.getMacAddress(), // Source MAC
-                                                          this.node.getIpv4Address(), // Source IP
-                                                          targetIpv4Address
-                                                          );
-
-            this.node.sendPacket(arpRequestPacket,
-                    MacAddress.getBroadcast()
-            );
+            this.node.sendPacket(packet,
+                                 MacAddress.getBroadcast()
+                                 );
             // Waiting before looking up in cache
             Timer.sleep(1000);
         }
 
-        return targetAddress;
+        return address;
     }
 
     /**
@@ -104,7 +105,7 @@ public class Arp extends AddressResolutionProtocol implements Receivable {
     @Override
     public void install(Node node) {
         this.node = node;
-        node.setAddressResolutionProtocol(this);
+        node.setArp(this);
         node.registerReceivable(this);
     }
 

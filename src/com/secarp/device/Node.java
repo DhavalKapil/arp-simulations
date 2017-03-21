@@ -30,7 +30,7 @@ public class Node {
     private ArrayList<Receivable> receivables;
 
     // The arp protocol stack
-    private AddressResolutionProtocol addressResolutionProtocol;
+    private AddressResolutionProtocol arp;
 
     // Logger
     private Logger logger;
@@ -88,12 +88,12 @@ public class Node {
         this.receivables = receivables;
     }
 
-    public AddressResolutionProtocol getAddressResolutionProtocol() {
-        return this.addressResolutionProtocol;
+    public AddressResolutionProtocol getArp() {
+        return this.arp;
     }
 
-    public void setAddressResolutionProtocol(AddressResolutionProtocol addressResolutionProtocol) {
-        this.addressResolutionProtocol = addressResolutionProtocol;
+    public void setArp(AddressResolutionProtocol arp) {
+        this.arp = arp;
     }
 
     public Logger getLogger() {
@@ -164,7 +164,7 @@ public class Node {
      * @param targetIpv4Address The target Ipv4Address
      */
     public void sendPacket(Packet packet, Ipv4Address targetIpv4Address) {
-        MacAddress targetAddress = addressResolutionProtocol.getTargetMacAddress(targetIpv4Address);
+        MacAddress targetAddress = arp.getMacAddress(targetIpv4Address);
 
         this.sendPacket(packet,
                         targetAddress
