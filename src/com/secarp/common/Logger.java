@@ -33,7 +33,7 @@ public class Logger {
     /**
      * Logs the ARP cache
      */
-    public void logArpCache() {
+    public synchronized void logArpCache() {
         ArpCache cache = this.node.getArpCache();
         Map<Ipv4Address, MacAddress> map = cache.getMap();
         System.out.println("Arp Cache for node: " + this.node.getId());
@@ -50,7 +50,7 @@ public class Logger {
      * @param packet The packet to be logged
      * @param sent Whether the packet is sent or received
      */
-    public void logPacket(Packet packet, boolean sent) {
+    public synchronized void logPacket(Packet packet, boolean sent) {
         System.out.println("Node " + this.node.getId() + " " +
                            (sent?"sent":"received") + " the following packet:");
         if (packet.getHeader() instanceof ArpHeader) {

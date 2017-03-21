@@ -5,10 +5,8 @@ import java.util.*;
 import com.secarp.address.Ipv4Address;
 import com.secarp.address.MacAddress;
 import com.secarp.common.Logger;
-import com.secarp.common.Timer;
 import com.secarp.network.Network;
-import com.secarp.protocol.arp.Arp;
-import com.secarp.protocol.arp.ArpCache;
+import com.secarp.protocol.AddressResolutionProtocol;
 import com.secarp.protocol.Packet;
 import com.secarp.protocol.Receivable;
 
@@ -32,10 +30,7 @@ public class Node {
     private ArrayList<Receivable> receivables;
 
     // The arp protocol stack
-    private Arp arp;
-
-    // The arp cache
-    private ArpCache arpCache;
+    private AddressResolutionProtocol addressResolutionProtocol;
 
     // Logger
     private Logger logger;
@@ -93,20 +88,12 @@ public class Node {
         this.receivables = receivables;
     }
 
-    public ArpCache getArpCache() {
-        return this.arpCache;
+    public AddressResolutionProtocol getAddressResolutionProtocol() {
+        return this.addressResolutionProtocol;
     }
 
-    public void setArpCache(ArpCache arpCache) {
-        this.arpCache = arpCache;
-    }
-
-    public Arp getArp() {
-        return this.arp;
-    }
-
-    public void setArp(Arp arp) {
-        this.arp = arp;
+    public void setAddressResolutionProtocol(AddressResolutionProtocol addressResolutionProtocol) {
+        this.addressResolutionProtocol = addressResolutionProtocol;
     }
 
     public Logger getLogger() {
@@ -120,7 +107,7 @@ public class Node {
     /**
      * Registers a new receivable
      *
-     * @param Receivable The new receivable to be registered
+     * @param receivable The new receivable to be registered
      */
     public void registerReceivable(Receivable receivable) {
         this.receivables.add(receivable);
@@ -130,7 +117,7 @@ public class Node {
      * Handles a packet receive operation
      * Iteratively calls all the receivables in a separate thread
      *
-     * @param Packet The received packet
+     * @param packet The received packet
      */
     public void handlePacket(Packet packet) {
         // Logging
@@ -177,22 +164,8 @@ public class Node {
      * @param targetIpv4Address The target Ipv4Address
      */
     public void sendPacket(Packet packet, Ipv4Address targetIpv4Address) {
-        MacAddress targetAddress;
+        MacAddress targetAddress = addressResolutionProtocol.getTargetMacAddress(targetIpv4Address);
 
-        while((targetAddress = this.arpCache.lookup(targetIpv4Address))
-              == null) {
-            Packet arpRequestPacket = this.arp.
-                createRequestPacket(this.macAddress, // Source MAC
-                                    this.ipv4Address, // Source IP
-                                    targetIpv4Address
-                                    );
-
-            this.sendPacket(arpRequestPacket,
-                            MacAddress.getBroadcast()
-                            );
-            // Waiting before looking up in cache
-            Timer.sleep(1000);
-        }
         this.sendPacket(packet,
                         targetAddress
                         );

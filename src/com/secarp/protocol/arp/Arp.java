@@ -2,16 +2,17 @@ package com.secarp.protocol.arp;
 
 import com.secarp.address.Ipv4Address;
 import com.secarp.address.MacAddress;
+import com.secarp.common.Timer;
 import com.secarp.device.Node;
-import com.secarp.protocol.Header;
-import com.secarp.protocol.Packet;
-import com.secarp.protocol.Protocol;
-import com.secarp.protocol.Receivable;
+import com.secarp.protocol.*;
 
 /**
  * Represents the ARP protocol stack
  */
-public class Arp extends Protocol implements Receivable {
+public class Arp extends AddressResolutionProtocol implements Receivable {
+    //The timeout of an entry in seconds
+    private static final int TIMEOUT = 60;
+
     // The ARP cache
     private ArpCache arpCache;
 
@@ -23,7 +24,32 @@ public class Arp extends Protocol implements Receivable {
      * Constructor function
      */
     public Arp() {
-        this.arpCache = new ArpCache();
+        this.arpCache = new ArpCache(TIMEOUT);
+    }
+
+    /**
+     * @{inheritDocs}
+     */
+    @Override
+    public MacAddress getTargetMacAddress(Ipv4Address targetIpv4Address) {
+
+        MacAddress targetAddress;
+
+        while((targetAddress = this.arpCache.lookup(targetIpv4Address))
+                == null) {
+            Packet arpRequestPacket = createRequestPacket(this.node.getMacAddress(), // Source MAC
+                                                          this.node.getIpv4Address(), // Source IP
+                                                          targetIpv4Address
+                                                          );
+
+            this.node.sendPacket(arpRequestPacket,
+                    MacAddress.getBroadcast()
+            );
+            // Waiting before looking up in cache
+            Timer.sleep(1000);
+        }
+
+        return targetAddress;
     }
 
     /**
@@ -71,8 +97,7 @@ public class Arp extends Protocol implements Receivable {
     @Override
     public void install(Node node) {
         this.node = node;
-        node.setArp(this);
-        node.setArpCache(this.arpCache);
+        node.setAddressResolutionProtocol(this);
         node.registerReceivable(this);
     }
 
