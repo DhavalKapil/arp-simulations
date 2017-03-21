@@ -28,6 +28,13 @@ public class Arp extends AddressResolutionProtocol implements Receivable {
     }
 
     /**
+     * getter for arpcache
+     */
+    public ArpCache getArpCache() {
+        return this.arpCache;
+    }
+
+    /**
      * @{inheritDocs}
      */
     @Override

@@ -8,6 +8,8 @@ import com.secarp.protocol.*;
 import com.secarp.protocol.arp.ArpCache;
 import com.secarp.protocol.arp.ArpType;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 /**
@@ -60,47 +62,83 @@ public class SecArp extends AddressResolutionProtocol implements Receivable{
         MacAddress targetMacAddress = L1Cache.lookup(targetIpv4Address);
         if(targetMacAddress != null) {
             return targetMacAddress;
-        } else if((targetMacAddress = L2Cache.lookup(targetIpv4Address))!=null) {
-
-                Packet unicastRequestPacket = createRequestPacket(this.node.getMacAddress(),
-                                                                  this.node.getIpv4Address(),
-                                                                  targetMacAddress,
-                                                                  targetIpv4Address,
-                                                                  generateSequenceNumber(),
-                                                                  false
-                                                                  );
-                this.node.sendPacket(unicastRequestPacket, targetMacAddress);
-                Timer.sleep(ARP_REPLY_WAIT_TIME);
-                if(L1Cache.lookup(targetIpv4Address).equals(targetMacAddress)) {
+        } else if((targetMacAddress = L2Cache.lookup(targetIpv4Address)) != null) {
+                if(targetMacAddress.equals(resolveIpToMac(targetMacAddress,
+                                                          targetIpv4Address))) {
                     return targetMacAddress;
                 } else {
-                    Packet broadcastRequestPacket = createRequestPacket(this.node.getMacAddress(),
-                                                                        this.node.getIpv4Address(),
-                                                                        MacAddress.getBroadcast(),
-                                                                        targetIpv4Address,
-                                                                        generateSequenceNumber(),
-                                                                        false
-                                                                        );
-
-                    this.node.sendPacket(broadcastRequestPacket, MacAddress.getBroadcast());
-                    Timer.sleep(ARP_REPLY_WAIT_TIME);
-                    return L1Cache.lookup(targetIpv4Address);
+                    return resolveIpToMac(MacAddress.getBroadcast(), targetIpv4Address);
                 }
         } else {
-            Packet broadcastRequestPacket = createRequestPacket(this.node.getMacAddress(),
-                                                                this.node.getIpv4Address(),
-                                                                MacAddress.getBroadcast(),
-                                                                targetIpv4Address,
-                                                                generateSequenceNumber(),
-                                                                false
-                                                                );
-            this.node.sendPacket(broadcastRequestPacket, MacAddress.getBroadcast());
-            Timer.sleep(ARP_REPLY_WAIT_TIME);
-            return L1Cache.lookup(targetIpv4Address);
+            return resolveIpToMac(MacAddress.getBroadcast(), targetIpv4Address);
         }
     }
 
-    //TODO
+    /**
+     * Returns Target Mac Address after sending ARP request packets
+     * @param receiverMac Mac Address of the receiver
+     * @param receiverIp Ip Address which needs to be resolved
+     */
+    public MacAddress resolveIpToMac(MacAddress receiverMac, Ipv4Address receiverIp) {
+        MacAddress targetMacAddress;
+
+        HashMap<MacAddress, Integer> macCountMap =
+                getMacCountMap(receiverMac, receiverIp, false);
+
+        if(macCountMap.keySet().size() == 1) {
+            targetMacAddress = macCountMap.keySet().iterator().next();
+            L1Cache.put(receiverIp, targetMacAddress);
+            L2Cache.put(receiverIp, targetMacAddress);
+            return targetMacAddress;
+        } else {
+            macCountMap = getMacCountMap(MacAddress.getBroadcast(),
+                                         receiverIp,
+                                        true
+                                         );
+            Map.Entry<MacAddress, Integer> maxEntry = null;
+            for (Map.Entry<MacAddress, Integer> entry: macCountMap.entrySet()) {
+                if (maxEntry == null || entry.getValue().
+                                        compareTo(maxEntry.getValue())> 0) {
+                    maxEntry = entry;
+                }
+            }
+            L1Cache.put(receiverIp, maxEntry.getKey());
+            L2Cache.put(receiverIp, maxEntry.getKey());
+            return maxEntry.getKey();
+        }
+    }
+
+    /**
+     * Get mac to count map
+     * @param macAddress Mac address of the receiver
+     * @param ipv4Address Ip address which needs to be resolved
+     * @param arpFloodFlag Value of the arp flood flag in request packet
+     */
+    public HashMap<MacAddress, Integer> getMacCountMap(MacAddress macAddress,
+                                                       Ipv4Address ipv4Address,
+                                                       boolean arpFloodFlag) {
+        int randomSequenceNumber = generateSequenceNumber();
+        Packet requestPacket = createRequestPacket(this.node.getMacAddress(),
+                                                   this.node.getIpv4Address(),
+                                                   macAddress,
+                                                   ipv4Address,
+                                                   randomSequenceNumber,
+                                                   arpFloodFlag
+                                                   );
+        this.node.sendPacket(requestPacket, macAddress);
+        sequenceNumberEntries[randomSequenceNumber] =
+                new SequenceNumberEntry(ipv4Address,
+                                        Timer.getCurrentTime() +
+                                        ARP_REPLY_WAIT_TIME,
+                                        new HashMap<>()
+                                        );
+        Timer.sleep(ARP_REPLY_WAIT_TIME);
+        HashMap<MacAddress, Integer> map = sequenceNumberEntries[randomSequenceNumber].
+                                           getMacCountMap();
+        sequenceNumberEntries[randomSequenceNumber] = null;
+        return map;
+    }
+
     /**
      * This checks for incoming Arp reply packets and updates both the caches accordingly
      *
@@ -109,15 +147,22 @@ public class SecArp extends AddressResolutionProtocol implements Receivable{
     @Override
     public void handlePacket(Packet packet) {
         // Checking if packet is ARP or not
-        if(!(packet.getHeader() instanceof SecArpHeader)) {
+        if (!(packet.getHeader() instanceof SecArpHeader)) {
             return;
         }
 
         SecArpHeader header = (SecArpHeader)packet.getHeader();
 
         //Checking if packet is a reply packet
-        if(header.getArpType() == ArpType.REPLY) {
-            
+        if (header.getArpType() == ArpType.REPLY) {
+            SequenceNumberEntry sequenceNumberEntry = sequenceNumberEntries[header.getSequenceNumber()];
+            if (sequenceNumberEntry == null) {
+                return;
+            } else {
+                HashMap<MacAddress, Integer> macCountMap = sequenceNumberEntry.getMacCountMap();
+                macCountMap.putIfAbsent(header.getSenderMac(), 0);
+                macCountMap.put(header.getSenderMac(), macCountMap.get(header.getSenderMac()) + 1);
+            }
         } else if(header.getArpType() == ArpType.REQUEST) {
             if (header.getReceiverMac() == this.node.getMacAddress()) {
                 Packet reply = createReplyPacket(this.node.getMacAddress(),
@@ -154,7 +199,7 @@ public class SecArp extends AddressResolutionProtocol implements Receivable{
     /**
      * Generates random sequence number
      */
-    public int generateSequenceNumber() {
+    private int generateSequenceNumber() {
         Random rand = new Random();
 
         int randomSequenceNumber = rand.nextInt(SEQUENCE_NUMBER_CAPACITY);

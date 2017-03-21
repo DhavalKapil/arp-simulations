@@ -18,4 +18,29 @@ public class SequenceNumberEntry {
     //Map from Mac address to its count
     private HashMap<MacAddress, Integer> macCountMap;
 
+    /**
+     * Constructor function
+     */
+    public SequenceNumberEntry(Ipv4Address ipv4Address,
+                               int expirationTime,
+                               HashMap<MacAddress, Integer> macCountMap
+                               ) {
+        this.ipv4Address = ipv4Address;
+        this.expirationTime = expirationTime;
+        this.macCountMap = macCountMap;
+    }
+    /**
+     * Getter and setter functions
+     */
+    public Ipv4Address getIpv4Address() { return this.ipv4Address; }
+
+    public void setIpv4Address(Ipv4Address ipv4Address) { this.ipv4Address = ipv4Address; }
+
+    public int getExpirationTime() { return this.expirationTime; }
+
+    public void setExpirationTime(int expirationTime) { this.expirationTime = expirationTime; }
+
+    public HashMap<MacAddress, Integer> getMacCountMap() { return this.macCountMap; }
+
+    public void setMacCountMap(HashMap<MacAddress, Integer> macCountMap) { this.macCountMap = macCountMap; }
 }

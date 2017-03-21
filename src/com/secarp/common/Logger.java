@@ -5,8 +5,8 @@ import java.util.Map;
 import com.secarp.address.Ipv4Address;
 import com.secarp.address.MacAddress;
 import com.secarp.device.Node;
-import com.secarp.protocol.Header;
 import com.secarp.protocol.Packet;
+import com.secarp.protocol.arp.Arp;
 import com.secarp.protocol.arp.ArpCache;
 import com.secarp.protocol.arp.ArpHeader;
 import com.secarp.protocol.arp.ArpType;
@@ -34,7 +34,7 @@ public class Logger {
      * Logs the ARP cache
      */
     public synchronized void logArpCache() {
-        ArpCache cache = this.node.getArpCache();
+        ArpCache cache = ((Arp)(this.node.getAddressResolutionProtocol())).getArpCache();
         Map<Ipv4Address, MacAddress> map = cache.getMap();
         System.out.println("Arp Cache for node: " + this.node.getId());
         for(Ipv4Address ip : map.keySet()) {
