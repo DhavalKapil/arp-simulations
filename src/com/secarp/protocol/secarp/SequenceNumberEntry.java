@@ -6,8 +6,6 @@ import java.util.Map;
 import com.secarp.address.Ipv4Address;
 import com.secarp.address.MacAddress;
 
-import javax.crypto.Mac;
-
 /**
  * Represents information corresponding to a sequence number
  */
@@ -77,7 +75,7 @@ public class SequenceNumberEntry {
         Map.Entry<MacAddress, Integer> maxEntry = null;
         for (Map.Entry<MacAddress, Integer> entry: this.macCountMap.entrySet()) {
             if (maxEntry == null || entry.getValue().
-                    compareTo(maxEntry.getValue())> 0) {
+                compareTo(maxEntry.getValue())> 0) {
                 maxEntry = entry;
             }
         }
@@ -92,9 +90,12 @@ public class SequenceNumberEntry {
     }
 
     /**
+     * Checks for conflict
+     * If more than 1 MAC appears, conflict has arised
      *
+     * @return Whether conflict arised or not
      */
-    public boolean isConflict() {
-        return this.macCountMap.size() == 1;
+    public boolean conflict() {
+        return this.macCountMap.size() != 1;
     }
 }

@@ -15,6 +15,15 @@ public class Timer {
     }
 
     /**
+     * Returns the current time in milliseconds
+     *
+     * @return The current unix timestamp in milliseconds
+     */
+    public static int getCurrentTimeInMillis() {
+        return (int)(System.currentTimeMillis());
+    }
+
+    /**
      * Sleeps for a particular amount of time
      *
      * @param millis The number of milliseconds to sleep for

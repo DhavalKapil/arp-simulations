@@ -19,10 +19,7 @@ import com.secarp.protocol.arp.ArpType;
  * Represents the SecArp protocol stack
  */
 public class SecArp extends AddressResolutionProtocol implements Receivable {
-    // Arp flood count
-    private static final int ARP_FLOOD_COUNT = 10;
-
-    // Arp Reply Wait time
+    // Arp Reply Wait time in milliseconds
     private static final int ARP_REPLY_WAIT_TIME = 1000;
 
     // The timeout for an entry, in seconds, in L1 Cache
@@ -72,12 +69,20 @@ public class SecArp extends AddressResolutionProtocol implements Receivable {
             if (macAddress.equals(resolveIpToMac(macAddress,
                                                  ipv4Address))) {
                 // Unicast ARP request succeeded
+                // The old node still has the same ip mac mapping
+                // update cache
+                L1Cache.put(ipv4Address, macAddress);
+                L2Cache.put(ipv4Address, macAddress);
                 return macAddress;
             }
         }
         // Need to broadcast request
-        return resolveIpToMac(MacAddress.getBroadcast(),
-                              ipv4Address);
+        macAddress = resolveIpToMac(MacAddress.getBroadcast(),
+                                    ipv4Address);
+        // Updating cache
+        L1Cache.put(ipv4Address, macAddress);
+        L2Cache.put(ipv4Address, macAddress);
+        return macAddress;
     }
 
     /**
@@ -91,25 +96,23 @@ public class SecArp extends AddressResolutionProtocol implements Receivable {
     public MacAddress resolveIpToMac(MacAddress receiverMac,
                                      Ipv4Address receiverIp) {
         MacAddress targetMacAddress;
-        SequenceNumberEntry sequenceNumberEntry = sendRequestPacket(
-                                                  receiverMac,
-                                                  receiverIp,
-                                                  false);
+        SequenceNumberEntry sequenceNumberEntry = sendRequestPacket(receiverMac,
+                                                                    receiverIp,
+                                                                    false);
 
-        if (sequenceNumberEntry.isConflict()) {
+        if (!sequenceNumberEntry.conflict()) {
             // No clash found
+            // Conflict will never arise in case of unicast flow as request is
+            // sent to only 1 host
             targetMacAddress = sequenceNumberEntry.getMacAddressWithMaxCount();
         } else {
             // Clash found
             sequenceNumberEntry = sendRequestPacket(MacAddress.getBroadcast(),
-                                                         receiverIp,
-                                                        true
-                                                        );
+                                                    receiverIp,
+                                                    true
+                                                    );
             targetMacAddress = sequenceNumberEntry.getMacAddressWithMaxCount();
         }
-        // Updating Caches
-        L1Cache.put(receiverIp, targetMacAddress);
-        L2Cache.put(receiverIp, targetMacAddress);
         return targetMacAddress;
     }
 
@@ -120,8 +123,8 @@ public class SecArp extends AddressResolutionProtocol implements Receivable {
      * @param arpFloodFlag Value of the arp flood flag in request packet
      */
     public SequenceNumberEntry sendRequestPacket(MacAddress macAddress,
-                                                       Ipv4Address ipv4Address,
-                                                       boolean arpFloodFlag) {
+                                                 Ipv4Address ipv4Address,
+                                                 boolean arpFloodFlag) {
         int randomSequenceNumber = generateSequenceNumber();
         // Creating request packet
         Packet requestPacket = createRequestPacket(this.node.getMacAddress(),
@@ -136,14 +139,14 @@ public class SecArp extends AddressResolutionProtocol implements Receivable {
         // Initializing sequence number entry
         sequenceNumberEntries[randomSequenceNumber] =
             new SequenceNumberEntry(ipv4Address,
-                                    Timer.getCurrentTime() +
-                                    ARP_REPLY_WAIT_TIME
+                                    Timer.getCurrentTime() + ARP_REPLY_WAIT_TIME
                                     );
         Timer.sleep(ARP_REPLY_WAIT_TIME);
-        SequenceNumberEntry sequenceNumberEntry = sequenceNumberEntries[randomSequenceNumber];
+        SequenceNumberEntry sequenceNumberEntry =
+            sequenceNumberEntries[randomSequenceNumber];
         // Removing sequence number entry
         sequenceNumberEntries[randomSequenceNumber] = null;
-        return  sequenceNumberEntry;
+        return sequenceNumberEntry;
     }
 
     /**
@@ -205,8 +208,10 @@ public class SecArp extends AddressResolutionProtocol implements Receivable {
                                           );
             }
             if (header.isArpFloodFlag()) {
-                // TODO: Flood till a particular time instead of sending
-                for (int i = 0; i < ARP_FLOOD_COUNT; i++){
+                // Flood till a particular time
+                long current_time = Timer.getCurrentTimeInMillis();
+                while (Timer.getCurrentTimeInMillis() >
+                       (current_time + ARP_REPLY_WAIT_TIME)) {
                     this.node.sendPacket(reply,
                                          header.getSenderMac()
                                          );
