@@ -91,44 +91,39 @@ public class SecArp extends AddressResolutionProtocol implements Receivable {
     public MacAddress resolveIpToMac(MacAddress receiverMac,
                                      Ipv4Address receiverIp) {
         MacAddress targetMacAddress;
+        SequenceNumberEntry sequenceNumberEntry = sendRequestPacket(
+                                                  receiverMac,
+                                                  receiverIp,
+                                                  false);
 
-        HashMap<MacAddress, Integer> macCountMap =
-            getMacCountMap(receiverMac, receiverIp, false);
-
-        if (macCountMap.keySet().size() == 1) {
+        if (sequenceNumberEntry.isConflict()) {
             // No clash found
-            targetMacAddress = macCountMap.keySet().iterator().next();
-            L1Cache.put(receiverIp, targetMacAddress);
-            L2Cache.put(receiverIp, targetMacAddress);
-            return targetMacAddress;
+            targetMacAddress = sequenceNumberEntry.getMacAddressWithMaxCount();
         } else {
-            macCountMap = getMacCountMap(MacAddress.getBroadcast(),
-                                         receiverIp,
-                                         true
-                                         );
-            Map.Entry<MacAddress, Integer> maxEntry = null;
-            for (Map.Entry<MacAddress, Integer> entry: macCountMap.entrySet()) {
-                if (maxEntry == null || entry.getValue().
-                    compareTo(maxEntry.getValue())> 0) {
-                    maxEntry = entry;
-                }
-            }
-            L1Cache.put(receiverIp, maxEntry.getKey());
-            L2Cache.put(receiverIp, maxEntry.getKey());
-            return maxEntry.getKey();
+            // Clash found
+            sequenceNumberEntry = sendRequestPacket(MacAddress.getBroadcast(),
+                                                         receiverIp,
+                                                        true
+                                                        );
+            targetMacAddress = sequenceNumberEntry.getMacAddressWithMaxCount();
         }
+        // Updating Caches
+        L1Cache.put(receiverIp, targetMacAddress);
+        L2Cache.put(receiverIp, targetMacAddress);
+        return targetMacAddress;
     }
 
     /**
-     * Get mac to count map
+     * Get sequence number entry corresponding to the generated request packet
      * @param macAddress Mac address of the receiver
      * @param ipv4Address Ip address which needs to be resolved
      * @param arpFloodFlag Value of the arp flood flag in request packet
      */
-    public HashMap<MacAddress, Integer> getMacCountMap(MacAddress macAddress,
+    public SequenceNumberEntry sendRequestPacket(MacAddress macAddress,
                                                        Ipv4Address ipv4Address,
                                                        boolean arpFloodFlag) {
         int randomSequenceNumber = generateSequenceNumber();
+        // Creating request packet
         Packet requestPacket = createRequestPacket(this.node.getMacAddress(),
                                                    this.node.getIpv4Address(),
                                                    macAddress,
@@ -136,18 +131,19 @@ public class SecArp extends AddressResolutionProtocol implements Receivable {
                                                    randomSequenceNumber,
                                                    arpFloodFlag
                                                    );
+        // Send Request Packet
         this.node.sendPacket(requestPacket, macAddress);
+        // Initializing sequence number entry
         sequenceNumberEntries[randomSequenceNumber] =
             new SequenceNumberEntry(ipv4Address,
                                     Timer.getCurrentTime() +
-                                    ARP_REPLY_WAIT_TIME,
-                                    new HashMap<>()
+                                    ARP_REPLY_WAIT_TIME
                                     );
         Timer.sleep(ARP_REPLY_WAIT_TIME);
-        HashMap<MacAddress, Integer> map = sequenceNumberEntries[randomSequenceNumber].
-            getMacCountMap();
+        SequenceNumberEntry sequenceNumberEntry = sequenceNumberEntries[randomSequenceNumber];
+        // Removing sequence number entry
         sequenceNumberEntries[randomSequenceNumber] = null;
-        return map;
+        return  sequenceNumberEntry;
     }
 
     /**

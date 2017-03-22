@@ -1,9 +1,12 @@
 package com.secarp.protocol.secarp;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import com.secarp.address.Ipv4Address;
 import com.secarp.address.MacAddress;
+
+import javax.crypto.Mac;
 
 /**
  * Represents information corresponding to a sequence number
@@ -22,12 +25,11 @@ public class SequenceNumberEntry {
      * Constructor function
      */
     public SequenceNumberEntry(Ipv4Address ipv4Address,
-                               int expirationTime,
-                               HashMap<MacAddress, Integer> macCountMap
+                               int expirationTime
                                ) {
         this.ipv4Address = ipv4Address;
         this.expirationTime = expirationTime;
-        this.macCountMap = macCountMap;
+        this.macCountMap = new HashMap<>();
     }
 
     /**
@@ -66,5 +68,33 @@ public class SequenceNumberEntry {
         this.macCountMap.putIfAbsent(macAddress, 0);
         // Increments existing entry
         this.macCountMap.put(macAddress, this.macCountMap.get(macAddress) + 1);
+    }
+
+    /**
+     * Returns Mac Address with maximum count
+     */
+    public MacAddress getMacAddressWithMaxCount() {
+        Map.Entry<MacAddress, Integer> maxEntry = null;
+        for (Map.Entry<MacAddress, Integer> entry: this.macCountMap.entrySet()) {
+            if (maxEntry == null || entry.getValue().
+                    compareTo(maxEntry.getValue())> 0) {
+                maxEntry = entry;
+            }
+        }
+        return maxEntry.getKey();
+    }
+
+    /**
+     * Returns the size of the mac to count map
+     */
+    public int getMacCountMapSize() {
+        return this.macCountMap.size();
+    }
+
+    /**
+     *
+     */
+    public boolean isConflict() {
+        return this.macCountMap.size() == 1;
     }
 }
