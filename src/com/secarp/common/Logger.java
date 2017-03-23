@@ -93,6 +93,8 @@ public class Logger {
                     (header.getArpType() == ArpType.REQUEST?
                             "request":"reply")
             );
+            System.out.println("Sequence No: " + header.getSequenceNumber());
+            System.out.println("Flood flag: " + header.isArpFloodFlag());
             System.out.println("Sender " + header.getSenderMac());
             System.out.println("Sender " + header.getSenderIp());
             System.out.println("Receiver " + header.getReceiverMac());

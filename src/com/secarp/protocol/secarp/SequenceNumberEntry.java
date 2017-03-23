@@ -79,6 +79,9 @@ public class SequenceNumberEntry {
                 maxEntry = entry;
             }
         }
+        if (maxEntry == null) {
+            return null;
+        }
         return maxEntry.getKey();
     }
 

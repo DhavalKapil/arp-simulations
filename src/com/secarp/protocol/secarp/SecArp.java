@@ -1,7 +1,5 @@
 package com.secarp.protocol.secarp;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Random;
 
 import com.secarp.address.Ipv4Address;
@@ -12,7 +10,6 @@ import com.secarp.protocol.AddressResolutionProtocol;
 import com.secarp.protocol.Header;
 import com.secarp.protocol.Receivable;
 import com.secarp.protocol.Packet;
-import com.secarp.protocol.arp.Arp;
 import com.secarp.protocol.arp.ArpCache;
 import com.secarp.protocol.arp.ArpType;
 
@@ -21,7 +18,7 @@ import com.secarp.protocol.arp.ArpType;
  */
 public class SecArp extends AddressResolutionProtocol implements Receivable {
     // Arp Reply Wait time in milliseconds
-    private static final int ARP_REPLY_WAIT_TIME = 1000;
+    private static final int ARP_REPLY_WAIT_TIME = 3000;
 
     // The timeout for an entry, in seconds, in L1 Cache
     private static final int TTL_ARP_CACHE_L1 = 60;
@@ -88,6 +85,7 @@ public class SecArp extends AddressResolutionProtocol implements Receivable {
                 // update cache
                 L1Cache.put(ipv4Address, macAddress);
                 L2Cache.put(ipv4Address, macAddress);
+                this.node.getLogger().logArpCache();
                 return macAddress;
             }
         }
@@ -97,6 +95,7 @@ public class SecArp extends AddressResolutionProtocol implements Receivable {
         // Updating cache
         L1Cache.put(ipv4Address, macAddress);
         L2Cache.put(ipv4Address, macAddress);
+        this.node.getLogger().logArpCache();
         return macAddress;
     }
 
@@ -225,7 +224,7 @@ public class SecArp extends AddressResolutionProtocol implements Receivable {
             if (header.isArpFloodFlag()) {
                 // Flood till a particular time
                 long current_time = Timer.getCurrentTimeInMillis();
-                while (Timer.getCurrentTimeInMillis() >
+                while (Timer.getCurrentTimeInMillis() <
                        (current_time + ARP_REPLY_WAIT_TIME)) {
                     this.node.sendPacket(reply,
                                          header.getSenderMac()

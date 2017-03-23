@@ -10,9 +10,6 @@ import com.secarp.protocol.Packet;
  * This assumes that packets do not get sniffed by any other node
  */
 public class Ethernet extends Network {
-    // Transmission delay in milliseconds
-    private final static int TRANSMISSION_DELAY = 200;
-
     /**
      * Constructor
      *
@@ -29,7 +26,6 @@ public class Ethernet extends Network {
     public void sendPacket(int id,
                            Packet packet,
                            MacAddress address) {
-        Timer.sleep(TRANSMISSION_DELAY);
         if (address.isBroadcast()) {
             for (Node node : this.nodes) {
                 if (node.getId() != id) {

@@ -1,10 +1,11 @@
 package com.secarp.device;
 
-import java.util.*;
+import java.util.ArrayList;
 
 import com.secarp.address.Ipv4Address;
 import com.secarp.address.MacAddress;
 import com.secarp.common.Logger;
+import com.secarp.common.Timer;
 import com.secarp.network.Network;
 import com.secarp.protocol.AddressResolutionProtocol;
 import com.secarp.protocol.Packet;
@@ -14,6 +15,9 @@ import com.secarp.protocol.Receivable;
  * An abstraction of a particular node
  */
 public class Node {
+    // Transmission delay in milliseconds
+    private final static int TRANSMISSION_DELAY = 200;
+
     // The id of the node
     private int id;
 
@@ -146,7 +150,7 @@ public class Node {
                            MacAddress address) {
         // Logging
         this.logger.logPacket(packet, true);
-
+        Timer.sleep(TRANSMISSION_DELAY);
         new Thread(new Runnable() {
                 @Override
                 public void run() {
