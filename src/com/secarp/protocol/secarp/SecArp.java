@@ -12,6 +12,7 @@ import com.secarp.protocol.AddressResolutionProtocol;
 import com.secarp.protocol.Header;
 import com.secarp.protocol.Receivable;
 import com.secarp.protocol.Packet;
+import com.secarp.protocol.arp.Arp;
 import com.secarp.protocol.arp.ArpCache;
 import com.secarp.protocol.arp.ArpType;
 
@@ -52,6 +53,20 @@ public class SecArp extends AddressResolutionProtocol implements Receivable {
         this.L2Cache = new ArpCache(TTL_ARP_CACHE_L2);
         this.sequenceNumberEntries =
             new SequenceNumberEntry[SEQUENCE_NUMBER_CAPACITY];
+    }
+
+    /**
+     * Getter for L1 Cache
+     */
+    public ArpCache getL1Cache() {
+        return this.L1Cache;
+    }
+
+    /**
+     * Getter for L2 Cache
+     */
+    public ArpCache getL2Cache() {
+        return this.L2Cache;
     }
 
     /**

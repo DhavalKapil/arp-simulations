@@ -5,11 +5,14 @@ import java.util.Map;
 import com.secarp.address.Ipv4Address;
 import com.secarp.address.MacAddress;
 import com.secarp.device.Node;
+import com.secarp.protocol.AddressResolutionProtocol;
 import com.secarp.protocol.Packet;
 import com.secarp.protocol.arp.Arp;
 import com.secarp.protocol.arp.ArpCache;
 import com.secarp.protocol.arp.ArpHeader;
 import com.secarp.protocol.arp.ArpType;
+import com.secarp.protocol.secarp.SecArp;
+import com.secarp.protocol.secarp.SecArpHeader;
 
 /**
  * Logs all events. Each node is mapped to exactly one instace of a Logger
@@ -34,9 +37,23 @@ public class Logger {
      * Logs the ARP cache
      */
     public synchronized void logArpCache() {
-        ArpCache cache = ((Arp)(this.node.getArp())).getArpCache();
+        AddressResolutionProtocol arp = this.node.getArp();
+        if(arp instanceof Arp) {
+            // Original Arp Protocol
+            printArpCache(((Arp) arp).getArpCache(), "Arp");
+        } else if (arp instanceof SecArp) {
+            //SecArp Protocol
+            printArpCache(((SecArp) arp).getL1Cache(), "L1");
+            printArpCache(((SecArp) arp).getL2Cache(), "L2");
+        }
+    }
+
+    /**
+     * Prints the ARP cache
+     */
+    private void printArpCache(ArpCache cache, String cacheName) {
         Map<Ipv4Address, MacAddress> map = cache.getMap();
-        System.out.println("Arp Cache for node: " + this.node.getId());
+        System.out.println(cacheName + " Cache for node: " + this.node.getId());
         for(Ipv4Address ip : map.keySet()) {
             MacAddress mac = map.get(ip);
             System.out.println(ip + "\t" + mac);
@@ -62,6 +79,20 @@ public class Logger {
                                (header.getArpType() == ArpType.REQUEST?
                                 "request":"reply")
                                );
+            System.out.println("Sender " + header.getSenderMac());
+            System.out.println("Sender " + header.getSenderIp());
+            System.out.println("Receiver " + header.getReceiverMac());
+            System.out.println("Receiver " + header.getReceiverIp());
+            System.out.println();
+        } else if(packet.getHeader() instanceof SecArpHeader) {
+
+            SecArpHeader header = (SecArpHeader)packet.getHeader();
+
+            System.out.println("ARP Packet");
+            System.out.println("Type: " +
+                    (header.getArpType() == ArpType.REQUEST?
+                            "request":"reply")
+            );
             System.out.println("Sender " + header.getSenderMac());
             System.out.println("Sender " + header.getSenderIp());
             System.out.println("Receiver " + header.getReceiverMac());
