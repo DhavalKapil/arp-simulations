@@ -73,12 +73,15 @@ public class SequenceNumberEntry {
      */
     public MacAddress getMacAddressWithMaxCount() {
         Map.Entry<MacAddress, Integer> maxEntry = null;
+        System.out.println("Contents of macCountMap:");
         for (Map.Entry<MacAddress, Integer> entry: this.macCountMap.entrySet()) {
+            System.out.println(entry.getKey() + ": " + entry.getValue());
             if (maxEntry == null || entry.getValue().
                 compareTo(maxEntry.getValue())> 0) {
                 maxEntry = entry;
             }
         }
+        System.out.println();
         if (maxEntry == null) {
             return null;
         }

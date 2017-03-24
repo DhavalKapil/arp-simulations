@@ -6,6 +6,11 @@ import com.secarp.network.*;
 import com.secarp.protocol.*;
 import com.secarp.protocol.arp.*;
 
+/**
+ * Simulates:
+ * - 3 nodes in a network using conventional ARP
+ * - node[0] sends a data packet to node[2]
+ */
 public class Simulator {
     public static void main(String[] args) {
         Network network = new Ethernet(20);

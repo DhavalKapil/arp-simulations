@@ -54,4 +54,15 @@ public class MacAddress extends Address {
         return String.format("Mac Address: %s",
                              this.address);
     }
+
+    /**
+     * Implements equality of addresses
+     *
+     * @param macAddress
+     *
+     * @return
+     */
+    public boolean matches(MacAddress macAddress) {
+        return this.address.equals(macAddress.address);
+    }
 }

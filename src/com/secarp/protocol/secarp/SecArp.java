@@ -78,7 +78,7 @@ public class SecArp extends AddressResolutionProtocol implements Receivable {
         } else if ( (macAddress = L2Cache.lookup(ipv4Address))
                     != null) {
             // Entry present in L2Cache
-            if (macAddress.equals(resolveIpToMac(macAddress,
+            if (macAddress.matches(resolveIpToMac(macAddress,
                                                  ipv4Address))) {
                 // Unicast ARP request succeeded
                 // The old node still has the same ip mac mapping
@@ -118,9 +118,11 @@ public class SecArp extends AddressResolutionProtocol implements Receivable {
             // No clash found
             // Conflict will never arise in case of unicast flow as request is
             // sent to only 1 host
+            System.out.println("No clash found\n");
             targetMacAddress = sequenceNumberEntry.getMacAddressWithMaxCount();
         } else {
             // Clash found
+            System.out.println("Clash found\n");
             sequenceNumberEntry = sendRequestPacket(MacAddress.getBroadcast(),
                                                     receiverIp,
                                                     true

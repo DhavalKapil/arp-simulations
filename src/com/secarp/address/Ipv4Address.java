@@ -42,4 +42,15 @@ public class Ipv4Address extends Address {
         return String.format("Ipv4 Address: %s",
                              this.address);
     }
+
+    /**
+     * Implements equality of addresses
+     *
+     * @param ipv4Address
+     *
+     * @return
+     */
+    public boolean matches(Ipv4Address ipv4Address) {
+        return this.address.equals(ipv4Address.address);
+    }
 }
